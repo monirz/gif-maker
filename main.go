@@ -24,9 +24,14 @@ type Success struct {
 }
 
 func main() {
-	http.HandleFunc("/file", fileUpload)
+	http.HandleFunc("/create", fileUpload)
+	http.HandleFunc("/file", getFile)
 	fmt.Println("Listening on :8090...")
 	http.ListenAndServe(":8090", nil)
+}
+
+func getFile(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "output.gif")
 }
 
 //fileUpload uploads nultiple files from formdata
