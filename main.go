@@ -3,12 +3,13 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"image"
 	"image/gif"
 	"image/jpeg"
-	"io"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"strconv"
@@ -36,7 +37,6 @@ func getFile(w http.ResponseWriter, r *http.Request) {
 
 //fileUpload uploads nultiple files from formdata
 func fileUpload(w http.ResponseWriter, r *http.Request) {
-	fn := []string{}
 
 	err := r.ParseMultipartForm(20000)
 
@@ -55,58 +55,34 @@ func fileUpload(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	for i := range files {
-		file, err := files[i].Open()
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		defer file.Close()
-		num := strconv.Itoa(i)
-		out, err := os.Create(num + ".jpg")
-
-		fn = append(fn, num+".jpg")
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		defer out.Close()
-
-		_, err = io.Copy(out, file)
-
-		if err != nil {
-			log.Fatal("error copying bytes from file ", err)
-		}
-
-	}
-
 	//send file names and delay
-	createGif(fn, di)
+	err = createGif(files, di)
+
+	if err != nil {
+		w.Write([]byte(err.Error()))
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 
 	dt := data{Success{Message: "Gif file created successfully"}, 2001}
 
-	b, err := json.Marshal(dt)
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(&dt)
 
 	if err != nil {
-		log.Fatal(err)
+		w.Write([]byte(err.Error()))
 	}
-
-	w.Write([]byte(b))
 
 }
 
 //
-func createGif(files []string, delay int) {
+func createGif(files []*multipart.FileHeader, delay int) error {
 
 	var frames []*image.Paletted
 
-	for _, name := range files {
+	for i := range files {
 
-		file, err := os.Open(name)
+		file, err := files[i].Open()
 
 		if err != nil {
 			log.Fatal(err)
@@ -117,24 +93,19 @@ func createGif(files []string, delay int) {
 			log.Fatal(err)
 		}
 
-		// out, err := os.Create("out.gif")
-		//
-		// if err != nil {
-		// 	log.Fatal(err)
-		// }
-
 		buf := bytes.Buffer{}
 
 		err = gif.Encode(&buf, img, nil)
 
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 
 		tmpimg, err := gif.Decode(&buf)
 
 		if err != nil {
-			log.Fatal("error decoding gif file ", err)
+			err = errors.New("error decoding gif file: " + err.Error())
+			return err
 		}
 
 		frames = append(frames, tmpimg.(*image.Paletted))
@@ -149,13 +120,15 @@ func createGif(files []string, delay int) {
 	opfile, err := os.Create("output.gif")
 
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	err = gif.EncodeAll(opfile, &gif.GIF{Image: frames, Delay: delays, LoopCount: 0})
 
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+
+	return nil
 
 }
