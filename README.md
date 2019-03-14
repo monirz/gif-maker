@@ -5,14 +5,22 @@
 
 ### Ussage
 
-First run the server and upload the files using a `HTTP POST` request.
+**With Docker** 
+
+`$ docker docker build -t gif-maker . `
+`$ docker run -p 8090:8090  gif-maker` 
+
+
+After running the server upload the files using a `HTTP POST` request.
 &nbsp;
 
 `curl -X POST -F 'delay=1' -F 'file[]=@/path/to/pictures/img1.jpeg' -F 'file[]=@/path/to/pictures/img2.jpeg' http://localhost:8090/create`
 
+Or you can browse and upload it through your web browser `http://localhost:8090`,    
+
 When you get the successful response, browse to [http://localhost:8090/file](http://localhost:8090/file) 
 
-### See the Demo [Here](https://cryptic-gorge-21126.herokuapp.com)
+### See the live demo [Here](https://cryptic-gorge-21126.herokuapp.com) 
 
 
 **TODO** 
