@@ -1,1 +1,1 @@
-“web: gif-maker”
+“web: go run main.go”
