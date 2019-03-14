@@ -5,6 +5,9 @@
 
 ### Ussage
 
+`$ go mod download`
+`$ go run main.go`
+
 **With Docker** 
 
 `$ docker docker build -t gif-maker . `<br/>
