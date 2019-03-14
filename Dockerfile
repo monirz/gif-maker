@@ -1,7 +1,7 @@
 FROM golang:1.12
 
 ENV GO111MODULE=on
-
+ENV PORT=8090
 WORKDIR /app
 
 COPY go.mod .

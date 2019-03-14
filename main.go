@@ -47,6 +47,8 @@ var (
 func main() {
 	var port = os.Getenv("PORT")
 
+	fmt.Println(port)
+
 	http.HandleFunc("/create", fileUploadHandler)
 	http.HandleFunc("/file", getFile)
 	http.HandleFunc("/upload", fileUploadHTML) //this is for the demo
@@ -54,7 +56,7 @@ func main() {
 	http.HandleFunc("/", rootHandler)
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
-	fmt.Println("Listening on :8090...")
+	fmt.Println("Listening on :", port)
 	http.ListenAndServe(":"+port, nil)
 }
 
@@ -66,15 +68,16 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		"footer": "My Footer",
 	}
 
-	outputHTML(w, data)
+	outputHTML(w, r, data)
 
 }
 
-func outputHTML(w http.ResponseWriter, data map[string]string) {
+func outputHTML(w http.ResponseWriter, r *http.Request, data map[string]string) {
+	fmt.Println("url", r.Host, r.URL.RequestURI())
 
 	if status == 201 {
 		data["status"] = "201"
-		data["url"] = "http://localhost:8090/file"
+		data["url"] = "http://" + r.Host + "/file"
 	}
 	err := templates.ExecuteTemplate(w, "rootHTML", data)
 

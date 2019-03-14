@@ -12,6 +12,8 @@ First run the server and upload the files using a `HTTP POST` request.
 
 When you get the successful response, browse to [http://localhost:8090/file](http://localhost:8090/file) 
 
+### See the Demo [Here](https://cryptic-gorge-21126.herokuapp.com)
+
 
 **TODO** 
 - Add support for configurable image width and height, currently it takes first image's width height as default size if all the provided images are not in same width and height. 
