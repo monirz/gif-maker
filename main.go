@@ -13,6 +13,8 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+
+	"github.com/nfnt/resize"
 )
 
 type data struct {
@@ -92,18 +94,22 @@ func fileUpload(w http.ResponseWriter, r *http.Request) {
 func createGif(files []*multipart.FileHeader, delay int) error {
 
 	var frames []*image.Paletted
+	var dx = []int{}
+	var dy = []int{}
+
+	var newTempImg image.Image
 
 	for i := range files {
 
 		file, err := files[i].Open()
 
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		img, err := jpeg.Decode(file)
 
 		if err != nil {
-			log.Fatal(err)
+			return errors.New("Failed decoding jpeg: " + err.Error())
 		}
 
 		buf := bytes.Buffer{}
@@ -121,7 +127,48 @@ func createGif(files []*multipart.FileHeader, delay int) error {
 			return err
 		}
 
-		frames = append(frames, tmpimg.(*image.Paletted))
+		r := tmpimg.Bounds()
+
+		var newX, newY int
+		if len(dx) > 0 {
+			if dx[i-1] != r.Dx() {
+				newX = dx[i-1]
+			}
+		}
+
+		if len(dy) > 0 {
+			if dy[i-1] != r.Dy() {
+				newY = dy[i-1]
+				// return errors.New("All image must be same height")
+			}
+		}
+
+		if newX > 0 || newY > 0 {
+			newTempImg = resize.Resize(uint(newX), uint(newY), tmpimg, resize.Lanczos3)
+		}
+
+		dx = append(dx, r.Dx())
+		dy = append(dy, r.Dy())
+
+		if newTempImg != nil {
+
+			err = gif.Encode(&buf, newTempImg, nil)
+
+			if err != nil {
+				return errors.New("Failed encoding resized image: " + err.Error())
+			}
+
+			tempImg, err := gif.Decode(&buf)
+			if err != nil {
+				return errors.New("Failed decoding resized image: " + err.Error())
+			}
+
+			frames = append(frames, tempImg.(*image.Paletted))
+
+		} else {
+
+			frames = append(frames, tmpimg.(*image.Paletted))
+		}
 
 	}
 
@@ -133,13 +180,13 @@ func createGif(files []*multipart.FileHeader, delay int) error {
 	opfile, err := os.Create("output.gif")
 
 	if err != nil {
-		return err
+		return errors.New("Failed ceating .gif file on disk: " + err.Error())
 	}
 
 	err = gif.EncodeAll(opfile, &gif.GIF{Image: frames, Delay: delays, LoopCount: 0})
 
 	if err != nil {
-		return err
+		return errors.New("Failed gif encoding: " + err.Error())
 	}
 
 	return nil
