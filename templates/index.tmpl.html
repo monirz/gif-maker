@@ -1,0 +1,59 @@
+{{define "rootHTML"}}
+
+<html>
+  {{template "headerHTML" .}}
+  <body>
+
+
+<div class="jumbotron text-center">
+  <div class="container">
+    <a href="/" class="lang-logo">
+      <img src="/static/lang-logo.png">
+    </a>
+    <h1>Create animated GIF file.</h1>
+  </div>
+</div>
+<div class="container">
+  
+
+    <div> 
+      {{if index . "status"}}
+        <h2>Gif file created successfully </h2>
+        <div>Download your file here <a href='{{ index . "url"}}'>{{ index . "url" }}</a></div>
+      {{end}}
+    </div>  
+    <form  enctype="multipart/form-data" action="/upload" method="POST">
+
+      <div class="form-group">
+
+          <div class="form-group row">
+              <div class="col-xs-2">
+
+              <label for="inputlg">Delay </label>
+              <input class="form-control" id="inputdefault" type="text" name="delay" value="1">
+              </div>
+            </div>
+        
+
+        <div class="form-group row">
+          <div class="col-xs-4">
+          <label for="inputlg">Select multiple files from your computer </label>
+          <input type="file" class="form-control input-lg" name="file" multiple/>
+          </div>
+        </div>
+
+        <div class="form-group">
+            <input type="submit" class="btn btn-lg btn-primary" value="upload" />
+        </div>
+
+      </form>
+  
+         
+</div>
+       
+</div>
+
+</body>
+</html>
+{{end}}
+
