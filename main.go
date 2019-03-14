@@ -45,6 +45,8 @@ var (
 )
 
 func main() {
+	var port = os.Getenv("PORT")
+
 	http.HandleFunc("/create", fileUploadHandler)
 	http.HandleFunc("/file", getFile)
 	http.HandleFunc("/upload", fileUploadHTML) //this is for the demo
@@ -53,7 +55,7 @@ func main() {
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
 	fmt.Println("Listening on :8090...")
-	http.ListenAndServe(":8090", nil)
+	http.ListenAndServe(":"+port, nil)
 }
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
