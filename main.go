@@ -46,13 +46,26 @@ func fileUpload(w http.ResponseWriter, r *http.Request) {
 
 	formdata := r.MultipartForm
 
-	files := formdata.File["file"]
+	var files []*multipart.FileHeader
+	for k, v := range formdata.File {
+		fmt.Println(k, v)
+		files = v
+	}
+
 	d := formdata.Value
+	w.Header().Set("Content-Type", "application/json")
+
+	if len(d["delay"]) < 1 || len(files) < 1 {
+		w.WriteHeader(400)
+		w.Write([]byte(`{"error": "Delay field or files are required in formdata"}`))
+		return
+	}
 
 	di, err := strconv.Atoi(d["delay"][0])
 
 	if err != nil {
-		log.Fatal(err)
+		w.Write([]byte(err.Error()))
+		return
 	}
 
 	//send file names and delay
@@ -60,13 +73,13 @@ func fileUpload(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		w.Write([]byte(err.Error()))
+		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	dt := data{Success{Message: "Gif file created successfully"}, 201}
 
-	dt := data{Success{Message: "Gif file created successfully"}, 2001}
+	w.WriteHeader(201)
 
-	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(&dt)
 
 	if err != nil {
