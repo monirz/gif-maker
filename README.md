@@ -10,7 +10,7 @@
 
 **With Docker** 
 
-`$ docker docker build -t gif-maker . `<br/>
+`$ docker build -t gif-maker . `<br/>
 `$ docker run -p 8090:8090  gif-maker` 
 
 
